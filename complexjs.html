@@ -1,0 +1,259 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>Complex Numbers on the Browser</title>
+	</head>
+	<body>
+		<script type='text/javascript'>
+
+	var getComplex = function(complex1){
+	//Essa funcao pega um numero complexo em string e separa sua parte real e imaginaria dentro de um Objeto
+	var real, imag, regex, match, a, b, c;
+	regex = /^([-+]?(?:\d+|\d*\.\d+))?([-+])?(\d+|\d*\.\d+)?[ij]$/i;
+	var string = String(complex1).replace(/\s+/g, '');
+	match = string.match(regex);
+	if(!match){
+		alert("Entrada invalida, usa-se o formato a + bi");
+		throw new Error("Entrada invalida, usa-se o formato a + bi");
+	}
+
+	a = match[1];
+	b = match[2];
+	c = match[3] + match[4];
+
+	real = a !== null ? parseFloat (a) : 0;
+	imag = parseFloat ((b || "+") + (c || "1"));
+
+	result = {
+		real: real,
+		imag: imag
+	};
+	return result;
+};
+
+var n1= getComplex('-2+3i');
+var n2 = getComplex('8-9i');
+
+
+var trunc = function(number){
+	//uma funcao criada apenas para truncar dizimas periodicas
+   	return Math[number < 0 ? 'ceil' : 'floor'](number);
+}
+
+
+var formRect = function(nc){
+	//o numero complexo é dado como um Objeto e entao é retornado sua notacao natural de numero complexo como String
+	var signal = String(nc.imag).match(/^-?/g);
+	return  signal[0] === '-' ? String(nc.real)  +  String(nc.imag) + 'i' : String(nc.real) + ' + ' +  String(nc.imag) + 'i';
+}
+var somar  = function(nc1,nc2){
+	var result = {};
+	result.real = nc1.real+nc2.real;
+	result.imag = nc1.imag + nc2.imag;
+	return (result);
+}
+
+var subtrair  = function(nc1,nc2){
+	var result = {};
+	result.real = nc1.real - nc2.real;
+	result.imag = nc1.imag - nc2.imag;
+	return (result);
+}
+
+var multiplicar = function(nc1,nc2){
+	var complex = {};
+	complex.real = (nc1.real * nc2.real) + (-1*(nc1.imag*nc2.imag));
+	complex.imag = (nc1.real*nc2.imag) + (nc1.imag*nc2.real);
+	return  (complex);
+}
+
+var dividir = function(nc1,nc2){
+	var result = {};
+	var conj2 = conjugado(nc2);
+	var numerador =  multiplicar(nc1,conj2);
+	result.real = trunc((numerador.real/modulo(nc2))*100)/100;
+	result.imag = trunc((numerador.imag/modulo(nc2))*100)/100;
+	return (result);
+}
+
+var modulo = function(nc){
+	var result = Math.sqrt((nc.real*nc.real) + (nc.imag*nc.imag));
+	return result;
+}
+
+var arg = function(nc){
+	//o resultado dado depois da divisao por PI: arctang(1) = PI/4 ||  3,14/4 = 0.785
+	 return Math.atan2(nc.imag, nc.real)
+}
+
+var conjugado = function(nc){
+	var aux = {real: nc.real};
+	aux.imag = nc.imag  * -1;
+	return (aux);
+}
+
+var formPol = function(nc){
+	var result = {};
+	var aux1 = modulo(nc);
+	var aux2 = arg(nc);
+	return aux1 + 'EXP^' + aux2 + 'i';
+}
+
+var formTrig = function(nc){
+	return modulo(nc)+'(cos'+arg(nc)+'+isen'+arg(nc)+')';
+}
+
+var log = function(nc){
+	var aux1 = {};
+	var aux2 = Math.log(modulo(nc)) + '+' + arg(nc) + 'i';
+	aux1 = getComplex(aux2);
+ 	return  (aux1);
+}
+
+var sen = function(nc){
+    var result ={};
+    result.real = Math.sin(nc.real) * cosh1(nc.imag);
+    result.imag = Math.cos(nc.real) * sinh1(nc.imag);
+    return (result);
+}
+
+var cos =function(nc){
+    var a ={};
+    a.real = Math.cos(nc.real) * cosh1(nc.imag);
+    a.imag = -(Math.sin(nc.real) * sinh1(nc.imag));
+    return (a);
+}
+
+var sinh1 = function(z){
+    return (Math.exp(z) - Math.exp(-z)) / 2;
+
+};
+
+var cosh1 = function(z){	
+    return (Math.exp(z) + Math.exp(-z)) / 2;
+};
+
+var tan =function(nc){
+  var a ={};
+  var divisor = Math.cos(2 * nc.real) + cosh1(2 * nc.imag);
+  a.real = Math.sin(2*nc.real)/divisor;
+  a.imag = sinh1(2 * nc.imag)/divisor;
+  return (a);
+}
+
+
+var sinh2 = function(nc){
+    	var a ={};
+		a.real = sinh1(nc.real) * Math.cos(nc.imag);
+		a.imag = cosh1(nc.real) * Math.sin(nc.imag);
+        return (a);
+}
+
+var cosh2 = function(nc){
+    var a ={};
+    a.real = cosh1(nc.real) * Math.cos(nc.imag);
+    a.imag = sinh1(nc.real) * Math.sin(nc.imag);
+    return (a);
+    
+}
+var tanh = function(nc){
+    	var a ={};
+	var divisor = cosh1(2 * nc.real) + Math.cos(2 * nc.imag);
+	a.real = sinh1(2 * nc.real) / divisor;
+	a.imag = Math.sin(2 * nc.imag) / divisor;
+	return (a);
+}
+
+var raiz = function(nc,n){
+	var result = {};
+	if (n<2){
+		alert('O indice tem de ser no minimo 2');
+	}
+	else{
+		result.real = Math.pow(modulo(nc),1/n)*Math.cos(arg(nc)/n);
+		result.imag = Math.pow(modulo(nc),1/n)*Math.sin(arg(nc)/n);
+		return (result)	
+	}
+	
+}
+
+var arctg = function (nc){
+	var aux1 = {}; var aux2 = {};
+	aux1.real = 1 + nc.real;
+	aux2.real = 1 - nc.real;
+	var aux4 = {};
+	aux4 = log(dividir(aux1,aux2));
+	aux4.real *= 0.5; aux4.imag *= 0.5;
+	return (aux4);
+}
+
+var arccos = function(nc){
+	var nc2 = multiplicar(nc,nc);
+	nc2.real += 1;
+	var root = raiz(nc2);
+	return log(somar(nc,root));
+}
+    
+var arcsen = function(nc){
+    var iposit = getComplex('0+i');
+    var inegat = getComplex('0-i');
+    var nc2 = multiplicar(nc,nc);
+    var aux1 = {real: 1 - nc2.real, imag: nc2.imag};
+    var mult = multiplicar(iposit,nc);
+    var root = raiz(aux1);
+    var soma = somar(mult,root);
+    return multiplicar(inegat,log(soma)); 
+}
+
+var potencia = function(n,nc,o){
+    var a = 1;
+    var i;
+    for(i = 1; i <= n; i++) {
+  a = a * modulo(nc);
+ }
+    
+return  a*cos(n*o)+'+'+a*sen(n*0)+"i";
+}
+
+
+
+		</script>
+		<h1><center>Usando Numeros Complexos com Javascript</center></h1>
+			<h3><center>Equipe:</center></h3>
+			<h5><center>Emerson Oliveira Junior / Brumo Mericias / Karytha de Paula / Rafael Daisuke<br>
+						Rafael Tavares / Felipe Rodrigues / Augusto Brandao
+			</center></h5>
+
+		<p>Para testar, basta acessar o WebConsole do seu navegador (Ctrl+Shift+K - no Firefox e Ctrl+Shift+J - no Chrome) e seguir as instrucoes abaixo escrevendo no prompt.</p>
+		<p>Para fazer os calculos, e necessario passar o numero complexo que deseja utilizar a uma variavel por meio da funcao <b>getComplex</b> e
+		entao depois para a operacao, segue o exemplo:<br>
+		<b>var ncom = getComplex('2+3i');<br>modulo(ncom);</b><br><em><small>Obs: Nao esquecer das aspas simples pois o numero complexo e um parametro passado como string!</small></em></p>
+		<p>As operacoes aceitam 2 argumentos <em>(numeros complexos)</em>. Por exemplo:<br><i>multiplicar(var1,var2);</i></p>
+		<p>Insere-se o numero complexo no formato a + bi. Caso queira passar so parte imaginaria, colocar: 0 +xi. Da mesma forma, so para a parte real, colocar: x + 0i</p>
+		<p>As funcoes que existem sao as seguintes:</p>
+		<p><ul><li>somar(a,b)</li>
+		<li>subtrair(a,b)</li>
+		<li>multiplicar(a,b)</li>
+		<li>dividir(a,b)</li>
+		<li>modulo(a)</li>
+		<li>arg(a)<br>
+		<li>conjugado(a)<br>
+		<li>formPol(a)<br>
+		<li>formTrig(a)<br>
+		<li>formRect(a)<br>
+		<li>log(a)<br>
+		<li>sen(a)<br>
+		<li>cos(a)<br>
+		<li>tan(a)<br>
+		<li>sinh1(a) -- seno hiperbolico de um numero natural<br>
+		<li>cosh1(a) -- cos hiperbolico de um numero natural<br>
+		<li>sinh2(a)<br>
+		<li>cosh2(a)</li>
+		<li>tanh(a)</li>
+		<li>raiz(a,n)</li>
+		<li>arcsen(a)</li>
+		<li>arccos(a)</li>
+		<li>arctg(a)</li></p>
+		
+	</body>
+</html>
